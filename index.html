@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compound Interest Calculator</title>
+    <!-- Chart.js for the graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Verdana, Arial, Helvetica, sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            font-size: 13px;
+        }
+
+        /* --- Header Section --- */
+        .top-nav {
+            background-color: #ffffff;
+            text-align: center;
+            padding: 10px 0;
+            font-weight: bold;
+            color: #444;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+        .top-nav span { margin: 0 15px; cursor: pointer; }
+
+        .header-bar {
+            background: linear-gradient(to bottom, #e68a45 0%, #cf6a28 100%); /* Orange Gradient */
+            padding: 15px 20px;
+            position: relative;
+            border-bottom: 1px solid #b05315;
+        }
+
+        .header-bar h1 {
+            margin: 0;
+            color: white;
+            font-family: "Georgia", "Times New Roman", serif;
+            font-weight: normal;
+            font-size: 32px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        /* Currency Box in top right */
+        .currency-box {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: white;
+            padding: 5px;
+            border: 1px solid #aaa;
+            border-radius: 3px;
+            font-size: 11px;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+        .currency-box span { font-weight: bold; margin-right: 5px; }
+        .currency-btns { display: inline-block; vertical-align: middle; }
+        .currency-btns button {
+            border: 1px solid #ccc;
+            background: #f0f0f0;
+            cursor: pointer;
+            font-size: 10px;
+            padding: 1px 4px;
+            margin-right: 2px;
+        }
+        .currency-btns button.active {
+            background: #cf6a28;
+            color: white;
+            border-color: #b05315;
+        }
+
+        /* --- Main Layout --- */
+        .main-container {
+            width: 900px;
+            margin: 20px auto;
+        }
+
+        /* Description Box */
+        .description-box {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+            background: #f9f9f9;
+            line-height: 1.5;
+        }
+        .desc-col { flex: 1; }
+
+        /* --- Calculator Box (The Beige Area) --- */
+        .calculator-box {
+            background-color: #f2f0eb; /* Exact beige tone */
+            border: 1px solid #bbb;
+            padding: 15px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* Grid Layout for Calc */
+        .calc-grid {
+            display: grid;
+            grid-template-columns: 180px 180px 1fr; /* Inputs | Results | Chart */
+            gap: 20px;
+        }
+
+        h3 {
+            font-size: 14px;
+            margin: 0 0 10px 0;
+            color: #000;
+            font-weight: bold;
+        }
+
+        /* Inputs */
+        .input-group { margin-bottom: 10px; }
+        .input-group label {
+            display: block;
+            margin-bottom: 2px;
+            font-size: 12px;
+        }
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 4px;
+            border: 1px solid #aaa;
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+
+        /* Results (Read only look) */
+        .result-group { margin-bottom: 10px; }
+        .result-group label {
+            display: block;
+            margin-bottom: 2px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .result-val {
+            background-color: #fff;
+            border: 1px solid #fff; /* Looks like text but with white bg */
+            padding: 4px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* Button */
+        button#calculate-btn {
+            margin-top: 10px;
+            background: linear-gradient(to bottom, #89c4f4, #5ca0d6);
+            border: 1px solid #4a8bc2;
+            color: white;
+            padding: 6px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 3px;
+            width: 100%;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+        }
+        button#calculate-btn:hover {
+            background: linear-gradient(to bottom, #5ca0d6, #4a8bc2);
+        }
+
+        /* Chart Area */
+        .chart-wrapper {
+            background: #f2f0eb; 
+            height: 300px;
+            width: 100%;
+        }
+
+        /* Text below chart */
+        .bottom-text {
+            margin-top: 30px;
+        }
+        .bottom-text h2 {
+            font-family: Arial, sans-serif;
+            color: #333;
+            font-size: 24px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- Top Navigation Mockup -->
+<div class="top-nav">
+    <span>Home</span>
+    <span>Mortgage Calculators</span>
+    <span>Compound Interest Calculator</span>
+    <span>About</span>
+</div>
+
+<!-- Orange Header -->
+<div class="header-bar">
+    <h1>Compound Interest Calculator</h1>
+    <div class="currency-box">
+        <span>Currency</span>
+        <div class="currency-btns">
+            <button class="active" onclick="setCurrency('$')">USD</button>
+            <button onclick="setCurrency('£')">GBP</button>
+            <button onclick="setCurrency('€')">EUR</button>
+            <button onclick="setCurrency('A$')">AUD</button>
+        </div>
+    </div>
+</div>
+
+<div class="main-container">
+    
+    <!-- Explanatory Text -->
+    <div class="description-box">
+        <div class="desc-col">
+            COMPOUND INTEREST IS THE CONCEPT of earning interest on your investment, then earning interest on your investment plus the interest. Over time this results in the exponential growth of your money.
+        </div>
+        <div class="desc-col">
+            This compound interest calculator demonstrates the power of compounding interest by graphically showing the value of your investment, broken down into the principal, any monthly deposits and the accumulated interest earned.
+            <br><br>Javascript is required.
+        </div>
+    </div>
+
+    <!-- Calculator Section (Beige Box) -->
+    <div class="calculator-box">
+        <div class="calc-grid">
+            
+            <!-- Column 1: Inputs -->
+            <div class="col-inputs">
+                <h3>Calculate your return</h3>
+                
+                <div class="input-group">
+                    <label>Principal <span class="c-sym">$</span>:</label>
+                    <input type="number" id="principal" value="1000">
+                </div>
+                
+                <div class="input-group">
+                    <label>Monthly Deposit <span class="c-sym">$</span>:</label>
+                    <input type="number" id="monthly" value="20">
+                </div>
+
+                <div class="input-group">
+                    <label>% Rate:</label>
+                    <input type="number" id="rate" value="5.3">
+                </div>
+
+                <div class="input-group">
+                    <label>Years:</label>
+                    <input type="number" id="years" value="30">
+                </div>
+
+                <button id="calculate-btn">Calculate</button>
+            </div>
+
+            <!-- Column 2: Results -->
+            <div class="col-results">
+                <h3>Results</h3>
+                
+                <div class="result-group">
+                    <label>Final Balance</label>
+                    <div class="result-val" id="res-balance">$ 22,486</div>
+                </div>
+
+                <div class="result-group">
+                    <label>Total Deposits</label>
+                    <div class="result-val" id="res-deposits">$ 7,200</div>
+                </div>
+
+                <div class="result-group">
+                    <label>Total Interest</label>
+                    <div class="result-val" id="res-interest">$ 14,286</div>
+                </div>
+            </div>
+
+            <!-- Column 3: Chart -->
+            <div class="col-chart">
+                <h3>Chart: Accumulated Return</h3>
+                <div class="chart-wrapper">
+                    <canvas id="growthChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Text -->
+    <div class="bottom-text">
+        <h2>How the Compound Interest Calculator Works</h2>
+        <p>A mathematical formula for calculating compound interest (as used by this online calculator), can be stated as...</p>
+    </div>
+
+</div>
+
+<script>
+    let currency = '$';
+    let myChart = null;
+
+    // Setup on load
+    document.addEventListener('DOMContentLoaded', () => {
+        runCalculation();
+        document.getElementById('calculate-btn').addEventListener('click', runCalculation);
+    });
+
+    function setCurrency(sym) {
+        currency = sym;
+        // Update all currency symbols in UI
+        document.querySelectorAll('.c-sym').forEach(el => el.innerText = sym);
+        
+        // Update buttons active state
+        document.querySelectorAll('.currency-btns button').forEach(btn => {
+            btn.classList.remove('active');
+            if(btn.innerText.includes(sym) || (sym === '$' && btn.innerText === 'USD') || (sym === 'A$' && btn.innerText === 'AUD')) {
+                btn.classList.add('active');
+            }
+        });
+        runCalculation();
+    }
+
+    function runCalculation() {
+        // Get Values
+        const P = parseFloat(document.getElementById('principal').value);
+        const M = parseFloat(document.getElementById('monthly').value);
+        const R = parseFloat(document.getElementById('rate').value);
+        const T = parseFloat(document.getElementById('years').value);
+
+        // Logic
+        let balance = P;
+        let totalDep = P;
+        let totalInt = 0;
+
+        let labels = [];
+        let dataP = []; // Principal (Blue)
+        let dataD = []; // Deposits (Orange)
+        let dataI = []; // Interest (Green)
+
+        // Loop Years
+        // Note: The original graph seems to sample every 2 years for labels, but calculates yearly/monthly
+        let displayInterval = Math.ceil(T / 15); // Prevent too many labels
+
+        for(let y=1; y<=T; y++) {
+            // Calculate 12 months
+            for(let m=0; m<12; m++) {
+                let interest = balance * (R / 100 / 12);
+                balance += interest + M;
+                totalDep += M;
+                totalInt += interest;
+            }
+
+            // Add to chart data
+            labels.push(y + " Years");
+            dataP.push(P);
+            dataD.push(totalDep - P);
+            dataI.push(totalInt);
+        }
+
+        // Update Text Results
+        document.getElementById('res-balance').innerText = fmt(balance);
+        document.getElementById('res-deposits').innerText = fmt(totalDep);
+        document.getElementById('res-interest').innerText = fmt(totalInt);
+
+        // Render Chart
+        drawChart(labels, dataP, dataD, dataI);
+    }
+
+    function fmt(num) {
+        return currency + " " + Math.round(num).toLocaleString();
+    }
+
+    function drawChart(labels, p, d, i) {
+        const ctx = document.getElementById('growthChart').getContext('2d');
+        
+        if(myChart) myChart.destroy();
+
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Principal',
+                        data: p,
+                        backgroundColor: '#0000ff', // Retro Blue
+                        barPercentage: 0.8,
+                        categoryPercentage: 0.9
+                    },
+                    {
+                        label: 'Deposits',
+                        data: d,
+                        backgroundColor: '#ffaa00', // Retro Orange
+                    },
+                    {
+                        label: 'Interest',
+                        data: i,
+                        backgroundColor: '#008000', // Retro Green
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: { display: false },
+                        ticks: {
+                            font: { size: 10 },
+                            maxTicksLimit: 8
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        grid: { color: '#e0e0e0' }, // Horizontal grid lines only
+                        title: {
+                            display: true,
+                            text: 'Balance ' + (currency === '$' ? 'USD' : ''),
+                            font: { style: 'italic' }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            boxWidth: 15,
+                            usePointStyle: false,
+                            font: { size: 11 }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
