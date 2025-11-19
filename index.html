@@ -245,6 +245,7 @@
 <div class="top-nav">
     <span onclick="switchTab('compound')" id="tab-compound" class="active-tab">Compound Interest</span>
     <span onclick="switchTab('lifestyle')" id="tab-lifestyle">Lifestyle Burn</span>
+    <span onclick="switchTab('time')" id="tab-time">Time Value</span>
 </div>
 
 <!-- Orange Header -->
@@ -414,12 +415,100 @@
         </div>
     </div>
 
+    <!-- VIEW: TIME VALUE -->
+    <div id="view-time" class="hidden">
+        <!-- Explanatory Text -->
+        <div class="description-box">
+            <div class="desc-col">
+                BUY BACK YOUR TIME CALCULATOR determines your "Aspirational Hourly Rate" based on your income goals and desired work-life balance.
+            </div>
+            <div class="desc-col">
+                Use this to decide whether to outsource a task or do it yourself. If the cost to outsource is lower than your hourly rate, you should buy back your time.
+            </div>
+        </div>
+
+        <!-- Calculator Section -->
+        <div class="calculator-box">
+            <div class="calc-grid">
+                
+                <!-- Column 1: Inputs -->
+                <div class="col-inputs">
+                    <h3>Your Goals</h3>
+                    
+                    <div class="input-group">
+                        <label>Target Annual Income <span class="c-sym">$</span>:</label>
+                        <input type="number" id="tv-income" value="200000">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Work Hours / Week:</label>
+                        <input type="number" id="tv-hours" value="30">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Weeks Off / Year:</label>
+                        <input type="number" id="tv-weeks-off" value="4">
+                    </div>
+
+                    <hr style="border: 0; border-top: 1px solid #ccc; margin: 15px 0;">
+                    
+                    <h3>Task Decision</h3>
+                    <div class="input-group">
+                        <label>Task Cost <span class="c-sym">$</span>:</label>
+                        <input type="number" id="tv-task-cost" value="100">
+                    </div>
+                    <div class="input-group">
+                        <label>Time Saved (Hours):</label>
+                        <input type="number" id="tv-task-time" value="5">
+                    </div>
+
+                    <button id="tv-calculate-btn" class="calculate-btn">Analyze Decision</button>
+                </div>
+
+                <!-- Column 2: Results -->
+                <div class="col-results">
+                    <h3>Your Value</h3>
+                    
+                    <div class="result-group">
+                        <label>Aspirational Hourly Rate</label>
+                        <div class="result-val" id="tv-res-rate">$ 139</div>
+                    </div>
+
+                    <div class="result-group">
+                        <label>Task Effective Hourly Cost</label>
+                        <div class="result-val" id="tv-res-task-rate">$ 20</div>
+                    </div>
+                    
+                    <div class="result-group">
+                        <label>Decision</label>
+                        <div class="result-val" id="tv-res-decision" style="color: green;">OUTSOURCE IT</div>
+                    </div>
+                </div>
+
+                <!-- Column 3: Chart -->
+                <div class="col-chart">
+                    <h3>Chart: Value Comparison</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="timeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bottom-text">
+            <h2>How to Use This Tool</h2>
+            <p>This tool calculates your hourly worth based on your *target* lifestyle, not just your current one. Use it to validate spending money to save time.</p>
+            <p>Formula: <code>Hourly Rate = Target Income / ((52 - Weeks Off) * Hours Per Week)</code></p>
+        </div>
+    </div>
+
 </div>
 
 <script>
     let currency = '$';
     let myChart = null;
     let lsChart = null;
+    let tvChart = null;
 
     // Setup on load
     document.addEventListener('DOMContentLoaded', () => {
@@ -430,23 +519,30 @@
         // Lifestyle Calc
         runLifestyleCalculation();
         document.getElementById('ls-calculate-btn').addEventListener('click', runLifestyleCalculation);
+
+        // Time Value Calc
+        runTimeCalculation();
+        document.getElementById('tv-calculate-btn').addEventListener('click', runTimeCalculation);
     });
 
     function switchTab(tabName) {
         // Update Tabs
         document.getElementById('tab-compound').classList.remove('active-tab');
         document.getElementById('tab-lifestyle').classList.remove('active-tab');
+        document.getElementById('tab-time').classList.remove('active-tab');
         document.getElementById('tab-' + tabName).classList.add('active-tab');
 
         // Update Views
         document.getElementById('view-compound').classList.add('hidden');
         document.getElementById('view-lifestyle').classList.add('hidden');
+        document.getElementById('view-time').classList.add('hidden');
         document.getElementById('view-' + tabName).classList.remove('hidden');
 
         // Update Header
         const titles = {
             'compound': 'Compound Interest Calculator',
-            'lifestyle': 'Lifestyle Income Calculator'
+            'lifestyle': 'Lifestyle Income Calculator',
+            'time': 'Time Value Calculator'
         };
         document.getElementById('header-title').innerText = titles[tabName];
     }
@@ -467,6 +563,7 @@
         // Re-run visible calc
         runCalculation();
         runLifestyleCalculation();
+        runTimeCalculation();
     }
 
     function fmt(num) {
@@ -626,6 +723,86 @@
                     title: {
                         display: true,
                         text: 'Monthly Gross Income Breakdown'
+                    }
+                }
+            }
+        });
+    }
+
+    // --- TIME VALUE LOGIC ---
+    function runTimeCalculation() {
+        const income = parseFloat(document.getElementById('tv-income').value) || 0;
+        const hours = parseFloat(document.getElementById('tv-hours').value) || 1;
+        const weeksOff = parseFloat(document.getElementById('tv-weeks-off').value) || 0;
+        
+        const taskCost = parseFloat(document.getElementById('tv-task-cost').value) || 0;
+        const taskTime = parseFloat(document.getElementById('tv-task-time').value) || 1;
+
+        // Calculations
+        const workingWeeks = 52 - weeksOff;
+        const totalHours = workingWeeks * hours;
+        
+        let hourlyRate = 0;
+        if (totalHours > 0) {
+            hourlyRate = income / totalHours;
+        }
+
+        let taskRate = 0;
+        if (taskTime > 0) {
+            taskRate = taskCost / taskTime;
+        }
+
+        const shouldOutsource = taskRate < hourlyRate;
+
+        // Update Results
+        document.getElementById('tv-res-rate').innerText = fmt(hourlyRate);
+        document.getElementById('tv-res-task-rate').innerText = fmt(taskRate);
+        
+        const decisionEl = document.getElementById('tv-res-decision');
+        if(shouldOutsource) {
+            decisionEl.innerText = "OUTSOURCE IT";
+            decisionEl.style.color = "green";
+        } else {
+            decisionEl.innerText = "DO IT YOURSELF";
+            decisionEl.style.color = "red"; // Or maybe orange? Red implies 'stop outsourcing'
+        }
+
+        // Draw Chart
+        drawTimeChart(hourlyRate, taskRate);
+    }
+
+    function drawTimeChart(myRate, taskRate) {
+        const ctx = document.getElementById('timeChart').getContext('2d');
+        
+        if(tvChart) tvChart.destroy();
+
+        tvChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['My Hourly Rate', 'Task Cost / Hour'],
+                datasets: [{
+                    label: 'Value ($)',
+                    data: [myRate, taskRate],
+                    backgroundColor: [
+                        '#0000ff', // My Rate
+                        taskRate < myRate ? '#008000' : '#ff0000' // Green if good deal, Red if bad
+                    ],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Hourly Value' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    title: {
+                        display: true,
+                        text: 'Value Comparison'
                     }
                 }
             }
