@@ -86,8 +86,11 @@
 
         /* --- Main Layout --- */
         .main-container {
-            width: 900px;
+            max-width: 900px;
+            width: 100%;
             margin: 20px auto;
+            padding: 0 15px;
+            box-sizing: border-box;
         }
 
         /* Description Box */
@@ -133,10 +136,49 @@
         }
         input[type="number"], input[type="text"] {
             width: 100%;
-            padding: 4px;
+            padding: 8px 4px; /* Larger touch target */
             border: 1px solid #aaa;
-            font-size: 13px;
+            font-size: 16px; /* Prevent iOS zoom */
             box-sizing: border-box;
+        }
+
+        /* ... existing styles ... */
+
+        /* Media Queries for Mobile */
+        @media (max-width: 768px) {
+            .calc-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .description-box {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .header-bar h1 {
+                font-size: 24px;
+                margin-top: 30px; /* Space for currency box */
+            }
+            
+            .currency-box {
+                top: 10px;
+                right: 10px;
+            }
+            
+            .chart-wrapper {
+                height: 250px;
+            }
+
+            .top-nav {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+            }
+            
+            .top-nav span {
+                margin: 0 5px;
+            }
         }
 
         /* Results (Read only look) */
