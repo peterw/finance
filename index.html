@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compound Interest Calculator</title>
+    <title>Financial Calculators</title>
     <!-- Chart.js for the graph -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -27,7 +27,18 @@
             font-size: 11px;
             letter-spacing: 1px;
         }
-        .top-nav span { margin: 0 15px; cursor: pointer; }
+        .top-nav span { 
+            margin: 0 15px; 
+            cursor: pointer; 
+            padding-bottom: 2px;
+        }
+        .top-nav span.active-tab {
+            color: #cf6a28;
+            border-bottom: 2px solid #cf6a28;
+        }
+        .top-nav span:hover {
+            color: #cf6a28;
+        }
 
         .header-bar {
             background: linear-gradient(to bottom, #e68a45 0%, #cf6a28 100%); /* Orange Gradient */
@@ -145,7 +156,7 @@
         }
 
         /* Button */
-        button#calculate-btn {
+        button.calculate-btn {
             margin-top: 10px;
             background: linear-gradient(to bottom, #89c4f4, #5ca0d6);
             border: 1px solid #4a8bc2;
@@ -157,7 +168,7 @@
             width: 100%;
             text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
         }
-        button#calculate-btn:hover {
+        button.calculate-btn:hover {
             background: linear-gradient(to bottom, #5ca0d6, #4a8bc2);
         }
 
@@ -179,22 +190,24 @@
             border-bottom: 1px solid #ccc;
             padding-bottom: 5px;
         }
+        
+        .hidden {
+            display: none;
+        }
 
     </style>
 </head>
 <body>
 
-<!-- Top Navigation Mockup -->
+<!-- Top Navigation -->
 <div class="top-nav">
-    <span>Home</span>
-    <span>Mortgage Calculators</span>
-    <span>Compound Interest Calculator</span>
-    <span>About</span>
+    <span onclick="switchTab('compound')" id="tab-compound" class="active-tab">Compound Interest</span>
+    <span onclick="switchTab('lifestyle')" id="tab-lifestyle">Lifestyle Burn</span>
 </div>
 
 <!-- Orange Header -->
 <div class="header-bar">
-    <h1>Compound Interest Calculator</h1>
+    <h1 id="header-title">Compound Interest Calculator</h1>
     <div class="currency-box">
         <span>Currency</span>
         <div class="currency-btns">
@@ -208,82 +221,155 @@
 
 <div class="main-container">
     
-    <!-- Explanatory Text -->
-    <div class="description-box">
-        <div class="desc-col">
-            COMPOUND INTEREST IS THE CONCEPT of earning interest on your investment, then earning interest on your investment plus the interest. Over time this results in the exponential growth of your money.
+    <!-- VIEW: COMPOUND INTEREST -->
+    <div id="view-compound">
+        <!-- Explanatory Text -->
+        <div class="description-box">
+            <div class="desc-col">
+                COMPOUND INTEREST IS THE CONCEPT of earning interest on your investment, then earning interest on your investment plus the interest. Over time this results in the exponential growth of your money.
+            </div>
+            <div class="desc-col">
+                This compound interest calculator demonstrates the power of compounding interest by graphically showing the value of your investment, broken down into the principal, any monthly deposits and the accumulated interest earned.
+                <br><br>Javascript is required.
+            </div>
         </div>
-        <div class="desc-col">
-            This compound interest calculator demonstrates the power of compounding interest by graphically showing the value of your investment, broken down into the principal, any monthly deposits and the accumulated interest earned.
-            <br><br>Javascript is required.
+
+        <!-- Calculator Section (Beige Box) -->
+        <div class="calculator-box">
+            <div class="calc-grid">
+                
+                <!-- Column 1: Inputs -->
+                <div class="col-inputs">
+                    <h3>Calculate your return</h3>
+                    
+                    <div class="input-group">
+                        <label>Principal <span class="c-sym">$</span>:</label>
+                        <input type="number" id="principal" value="1000">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Monthly Deposit <span class="c-sym">$</span>:</label>
+                        <input type="number" id="monthly" value="20">
+                    </div>
+
+                    <div class="input-group">
+                        <label>% Rate:</label>
+                        <input type="number" id="rate" value="5.3">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Years:</label>
+                        <input type="number" id="years" value="30">
+                    </div>
+
+                    <button id="calculate-btn" class="calculate-btn">Calculate</button>
+                </div>
+
+                <!-- Column 2: Results -->
+                <div class="col-results">
+                    <h3>Results</h3>
+                    
+                    <div class="result-group">
+                        <label>Final Balance</label>
+                        <div class="result-val" id="res-balance">$ 22,486</div>
+                    </div>
+
+                    <div class="result-group">
+                        <label>Total Deposits</label>
+                        <div class="result-val" id="res-deposits">$ 7,200</div>
+                    </div>
+
+                    <div class="result-group">
+                        <label>Total Interest</label>
+                        <div class="result-val" id="res-interest">$ 14,286</div>
+                    </div>
+                </div>
+
+                <!-- Column 3: Chart -->
+                <div class="col-chart">
+                    <h3>Chart: Accumulated Return</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="growthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Text -->
+        <div class="bottom-text">
+            <h2>How the Compound Interest Calculator Works</h2>
+            <p>A mathematical formula for calculating compound interest (as used by this online calculator), can be stated as...</p>
         </div>
     </div>
 
-    <!-- Calculator Section (Beige Box) -->
-    <div class="calculator-box">
-        <div class="calc-grid">
-            
-            <!-- Column 1: Inputs -->
-            <div class="col-inputs">
-                <h3>Calculate your return</h3>
-                
-                <div class="input-group">
-                    <label>Principal <span class="c-sym">$</span>:</label>
-                    <input type="number" id="principal" value="1000">
-                </div>
-                
-                <div class="input-group">
-                    <label>Monthly Deposit <span class="c-sym">$</span>:</label>
-                    <input type="number" id="monthly" value="20">
-                </div>
-
-                <div class="input-group">
-                    <label>% Rate:</label>
-                    <input type="number" id="rate" value="5.3">
-                </div>
-
-                <div class="input-group">
-                    <label>Years:</label>
-                    <input type="number" id="years" value="30">
-                </div>
-
-                <button id="calculate-btn">Calculate</button>
+    <!-- VIEW: LIFESTYLE BURN -->
+    <div id="view-lifestyle" class="hidden">
+        <!-- Explanatory Text -->
+        <div class="description-box">
+            <div class="desc-col">
+                LIFESTYLE BURN CALCULATOR helps you understand how much pre-tax (gross) income you need to earn to support your monthly spending habits.
             </div>
-
-            <!-- Column 2: Results -->
-            <div class="col-results">
-                <h3>Results</h3>
-                
-                <div class="result-group">
-                    <label>Final Balance</label>
-                    <div class="result-val" id="res-balance">$ 22,486</div>
-                </div>
-
-                <div class="result-group">
-                    <label>Total Deposits</label>
-                    <div class="result-val" id="res-deposits">$ 7,200</div>
-                </div>
-
-                <div class="result-group">
-                    <label>Total Interest</label>
-                    <div class="result-val" id="res-interest">$ 14,286</div>
-                </div>
+            <div class="desc-col">
+                Input your monthly expenses and your estimated effective tax rate. We will calculate the salary required to maintain that lifestyle after taxes are paid.
             </div>
+        </div>
 
-            <!-- Column 3: Chart -->
-            <div class="col-chart">
-                <h3>Chart: Accumulated Return</h3>
-                <div class="chart-wrapper">
-                    <canvas id="growthChart"></canvas>
+        <!-- Calculator Section -->
+        <div class="calculator-box">
+            <div class="calc-grid">
+                
+                <!-- Column 1: Inputs -->
+                <div class="col-inputs">
+                    <h3>Your Lifestyle</h3>
+                    
+                    <div class="input-group">
+                        <label>Monthly Spending <span class="c-sym">$</span>:</label>
+                        <input type="number" id="ls-burn" value="5000">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Estimated Tax Rate (%):</label>
+                        <input type="number" id="ls-tax" value="30">
+                    </div>
+
+                    <button id="ls-calculate-btn" class="calculate-btn">Calculate Income</button>
+                </div>
+
+                <!-- Column 2: Results -->
+                <div class="col-results">
+                    <h3>Required Earnings</h3>
+                    
+                    <div class="result-group">
+                        <label>Annual Gross Salary</label>
+                        <div class="result-val" id="ls-res-annual">$ 85,714</div>
+                    </div>
+
+                    <div class="result-group">
+                        <label>Monthly Gross Income</label>
+                        <div class="result-val" id="ls-res-monthly">$ 7,143</div>
+                    </div>
+                    
+                    <div class="result-group">
+                        <label>Monthly Taxes</label>
+                        <div class="result-val" id="ls-res-taxes">$ 2,143</div>
+                    </div>
+                </div>
+
+                <!-- Column 3: Chart -->
+                <div class="col-chart">
+                    <h3>Chart: Income Breakdown</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="lifestyleChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Bottom Text -->
-    <div class="bottom-text">
-        <h2>How the Compound Interest Calculator Works</h2>
-        <p>A mathematical formula for calculating compound interest (as used by this online calculator), can be stated as...</p>
+        
+        <div class="bottom-text">
+            <h2>Understanding Your Lifestyle Cost</h2>
+            <p>This calculator assumes the "Burn" is your net spending (after tax). The calculation reverses the tax rate to find the gross income required.</p>
+            <p>Formula: <code>Gross Income = Net Spend / (1 - Tax Rate)</code></p>
+        </div>
     </div>
 
 </div>
@@ -291,12 +377,37 @@
 <script>
     let currency = '$';
     let myChart = null;
+    let lsChart = null;
 
     // Setup on load
     document.addEventListener('DOMContentLoaded', () => {
+        // Initial Compound Calc
         runCalculation();
         document.getElementById('calculate-btn').addEventListener('click', runCalculation);
+        
+        // Lifestyle Calc
+        runLifestyleCalculation();
+        document.getElementById('ls-calculate-btn').addEventListener('click', runLifestyleCalculation);
     });
+
+    function switchTab(tabName) {
+        // Update Tabs
+        document.getElementById('tab-compound').classList.remove('active-tab');
+        document.getElementById('tab-lifestyle').classList.remove('active-tab');
+        document.getElementById('tab-' + tabName).classList.add('active-tab');
+
+        // Update Views
+        document.getElementById('view-compound').classList.add('hidden');
+        document.getElementById('view-lifestyle').classList.add('hidden');
+        document.getElementById('view-' + tabName).classList.remove('hidden');
+
+        // Update Header
+        const titles = {
+            'compound': 'Compound Interest Calculator',
+            'lifestyle': 'Lifestyle Income Calculator'
+        };
+        document.getElementById('header-title').innerText = titles[tabName];
+    }
 
     function setCurrency(sym) {
         currency = sym;
@@ -310,9 +421,17 @@
                 btn.classList.add('active');
             }
         });
+        
+        // Re-run visible calc
         runCalculation();
+        runLifestyleCalculation();
     }
 
+    function fmt(num) {
+        return currency + " " + Math.round(num).toLocaleString();
+    }
+
+    // --- COMPOUND INTEREST LOGIC ---
     function runCalculation() {
         // Get Values
         const P = parseFloat(document.getElementById('principal').value);
@@ -331,8 +450,7 @@
         let dataI = []; // Interest (Green)
 
         // Loop Years
-        // Note: The original graph seems to sample every 2 years for labels, but calculates yearly/monthly
-        let displayInterval = Math.ceil(T / 15); // Prevent too many labels
+        let displayInterval = Math.ceil(T / 15); 
 
         for(let y=1; y<=T; y++) {
             // Calculate 12 months
@@ -359,10 +477,6 @@
         drawChart(labels, dataP, dataD, dataI);
     }
 
-    function fmt(num) {
-        return currency + " " + Math.round(num).toLocaleString();
-    }
-
     function drawChart(labels, p, d, i) {
         const ctx = document.getElementById('growthChart').getContext('2d');
         
@@ -376,19 +490,19 @@
                     {
                         label: 'Principal',
                         data: p,
-                        backgroundColor: '#0000ff', // Retro Blue
+                        backgroundColor: '#0000ff', 
                         barPercentage: 0.8,
                         categoryPercentage: 0.9
                     },
                     {
                         label: 'Deposits',
                         data: d,
-                        backgroundColor: '#ffaa00', // Retro Orange
+                        backgroundColor: '#ffaa00', 
                     },
                     {
                         label: 'Interest',
                         data: i,
-                        backgroundColor: '#008000', // Retro Green
+                        backgroundColor: '#008000', 
                     }
                 ]
             },
@@ -399,34 +513,83 @@
                     x: {
                         stacked: true,
                         grid: { display: false },
-                        ticks: {
-                            font: { size: 10 },
-                            maxTicksLimit: 8
-                        }
+                        ticks: { font: { size: 10 }, maxTicksLimit: 8 }
                     },
                     y: {
                         stacked: true,
-                        grid: { color: '#e0e0e0' }, // Horizontal grid lines only
-                        title: {
-                            display: true,
-                            text: 'Balance ' + (currency === '$' ? 'USD' : ''),
-                            font: { style: 'italic' }
-                        }
+                        grid: { color: '#e0e0e0' },
+                        title: { display: true, text: 'Balance ' + (currency === '$' ? 'USD' : '') }
                     }
                 },
                 plugins: {
+                    legend: { position: 'top' }
+                }
+            }
+        });
+    }
+
+    // --- LIFESTYLE BURN LOGIC ---
+    function runLifestyleCalculation() {
+        const burn = parseFloat(document.getElementById('ls-burn').value) || 0;
+        const taxRate = parseFloat(document.getElementById('ls-tax').value) || 0;
+        
+        // Calculations
+        // Net Annual Needed
+        const netAnnual = burn * 12;
+        
+        // Gross Annual Needed = Net / (1 - TaxRate)
+        // Guard against 100% tax rate
+        let grossAnnual = 0;
+        if(taxRate < 100) {
+            grossAnnual = netAnnual / (1 - (taxRate / 100));
+        }
+
+        const grossMonthly = grossAnnual / 12;
+        const monthlyTax = grossMonthly - burn;
+
+        // Update Results
+        document.getElementById('ls-res-annual').innerText = fmt(grossAnnual);
+        document.getElementById('ls-res-monthly').innerText = fmt(grossMonthly);
+        document.getElementById('ls-res-taxes').innerText = fmt(monthlyTax);
+
+        // Draw Chart
+        drawLifestyleChart(burn, monthlyTax);
+    }
+
+    function drawLifestyleChart(burn, tax) {
+        const ctx = document.getElementById('lifestyleChart').getContext('2d');
+        
+        if(lsChart) lsChart.destroy();
+
+        lsChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Lifestyle Burn (Net)', 'Taxes'],
+                datasets: [{
+                    data: [burn, tax],
+                    backgroundColor: [
+                        '#ffaa00', // Orange for spend
+                        '#0000ff'  // Blue for tax
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
                     legend: {
-                        position: 'top',
-                        labels: {
-                            boxWidth: 15,
-                            usePointStyle: false,
-                            font: { size: 11 }
-                        }
+                        position: 'right'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Monthly Gross Income Breakdown'
                     }
                 }
             }
         });
     }
+
 </script>
 
 </body>
