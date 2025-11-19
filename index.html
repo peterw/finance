@@ -524,6 +524,22 @@
         // Time Value Calc
         runTimeCalculation();
         document.getElementById('tv-calculate-btn').addEventListener('click', runTimeCalculation);
+
+        // Handle Enter key for all calculators
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                // Avoid double submission if user is focused on the button itself
+                if (document.activeElement.tagName === 'BUTTON') return;
+
+                if (!document.getElementById('view-compound').classList.contains('hidden')) {
+                    runCalculation();
+                } else if (!document.getElementById('view-lifestyle').classList.contains('hidden')) {
+                    runLifestyleCalculation();
+                } else if (!document.getElementById('view-time').classList.contains('hidden')) {
+                    runTimeCalculation();
+                }
+            }
+        });
     });
 
     function switchTab(tabName) {
